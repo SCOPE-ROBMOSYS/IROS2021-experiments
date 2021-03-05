@@ -1,4 +1,5 @@
-# Simulated Experiments for the paper: Runtime Verification of Behavior Trees.
+# Simulated Experiments for the paper: Formalizing the Execution Context of Behavior Trees
+for Runtime Verification of Deliberative Policies.
 
 In this repository, you will find the code related to the experiments of the paper: <br>
 "Formalizing the Execution Context of Behavior Trees
