@@ -1,0 +1,4 @@
+WARNING
+-------
+
+This is actually part of YARP, moved here to fix a bug in the packaged version.

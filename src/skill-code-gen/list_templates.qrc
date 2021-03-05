@@ -1,0 +1,14 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>skill-template-files/Name_SkillDataModel_cpp.t</file>
+    <file>skill-template-files/Name_SkillDataModel_h.t</file>
+    <file>skill-template-files/Name_Skill_cpp.t</file>
+    <file>skill-template-files/Name_Skill_h.t</file>
+    <file>skill-template-files/main_cpp.t</file>
+
+    <file>input-files/config-skills/BatteryLevelSkill.conf</file>
+    <file>input-files/config-skills/BatteryNotChargingSkill.conf</file>
+    <file>input-files/config-skills/GoToSkill.conf</file>
+
+</qresource>
+</RCC>

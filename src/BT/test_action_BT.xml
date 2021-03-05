@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2020 Fondazione Istituto Italiano di Tecnologia (IIT)
+ All Rights Reserved.
+-->
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <ReactiveSequence>
+            <Condition ID="FlipFlopCondition"/>
+            <Action ID="YARPAction" name="GoTo" port_name="goTo"/>
+        </ReactiveSequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Condition ID="FlipFlopCondition"/>
+        <Action ID="YARPAction">
+            <input_port name="port_name" type="std::string"/>
+        </Action>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>
+

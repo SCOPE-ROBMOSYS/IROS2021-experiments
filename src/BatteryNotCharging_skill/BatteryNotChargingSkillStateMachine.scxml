@@ -1,0 +1,63 @@
+<!--
+ Copyright (C) 2020 Fondazione Istituto Italiano di Tecnologia (IIT)
+ All Rights Reserved.
+-->
+
+<scxml
+    xmlns="http://www.w3.org/2005/07/scxml"
+    version="1.0"
+    name="BatteryNotChargingSkillStateMachine"
+    initial="idle"
+    datamodel="cplusplus:BatteryNotChargingSkillDataModel:BatteryNotChargingSkillDataModel.h"
+    xmlns:scope="http://www.scope.org/scope"
+    xmlns:scope_yarp="http://www.scope.org/scope_yarp"
+    binding="early"
+    xmlns:qt="http://www.qt.io/2015/02/scxml-ext"
+    qt:editorversion="4.11.0"
+    scope:skill_version="0.1"
+>
+
+<datamodel>
+
+<!--  Services:  -->
+
+    <data id="batteryReader"
+          scope_yarp:service_type="BatteryReader"
+          scope_yarp:connect_type="tcp"
+          scope_yarp:thrift_protocol="Battery"
+          scope_yarp:service_function="charging_status"
+          scope_yarp:port_name_client_attribute="default"
+          scope_yarp:port_name_server="/BatteryComponent"
+          />
+
+<!--  Attributes:  -->
+
+
+</datamodel>
+
+
+    <state id="idle" scope:bt_status="SKILL_IDLE">
+        <transition event="CMD_START" target="get" />
+    </state>
+
+    <state id="get" scope:bt_status="SKILL_IDLE">
+        <onentry>
+            <script>
+                ChargingStatus status = batteryReader.charging_status();
+                QTimer::singleShot(0, stateMachine(), [=](){
+                    stateMachine()->submitEvent((status == BATTERY_NOT_CHARGING) ? "STATUS_SUCCESS" : "STATUS_FAILED");
+                });
+            </script>
+        </onentry>
+        <transition event="STATUS_SUCCESS" target="success" />
+        <transition event="STATUS_FAILED" target="failure" />
+    </state>
+
+    <state id="success" scope:bt_status="SKILL_SUCCESS">
+        <transition event="REQUEST_ACK" target="idle" />
+    </state>
+
+    <state id="failure" scope:bt_status="SKILL_FAILURE">
+        <transition event="REQUEST_ACK" target="idle" />
+    </state>
+</scxml>

@@ -1,0 +1,66 @@
+The document describes how to choose the port names and their connections, by means of the scxml nomenclature.
+The section named as " <datamodel> <!--  Services:  --> " is dedicated to open ports from the skill to the components, using the " <data ... /> " space.
+Each space defines a service that generates automatically a connection from the skill described by the scxml that the user is filling to the desired component.
+
+Below is listed an example of a service, with all the necessary information.
+
+<datamodel>
+
+<!--  Services:  -->
+
+      <data id="goTo"
+            scope_yarp:service_type="GoTo"
+            scope_yarp:connect_type="tcp"
+            scope_yarp:thrift_protocol="GoTo"
+            scope_yarp:service_function="multiple"
+            scope_yarp:port_name_client_attribute="location"
+            scope_yarp:port_name_server="/GoToComponent"
+            />
+
+</datamodel>
+
+The service provides the interface between the skill and the component named "GoTo", defined in "service_type" field.
+The "connect_type" field defines the kind of the carrier used for the communication, in this case the "tcp" protocol.
+The component is capable to communicate thanks to its "thrift_protocol".
+The connection will open 2 ports. One port is associated to the skill (client) and the other to the component (server side).
+
+Client port:
+
+The client port is initialized with the name default name "/ SKILL_NAME + Client", in this case would be "/GoToClient".
+Additionally, an attribute is associated to the standard prefix name, as specified in port_name_client_attribute. If it is left to "default", then the port is not further specified.
+In this case, "port_name_client_attribute" contains the variable "location", that should be specified in the <!--  Attributes:  --> section.
+The client port will result to be named as: "/GoToClient/location", where location might be inizialized at the application start-up.
+This functionality is particularly useful to differentiate the execution of multiple instances of the same component.
+
+Server port:
+
+The port connected at the server side is named using the field "scope_yarp:port_name_server". By convention, it contains the name of the component involved.
+
+
+
+<datamodel>
+
+<!--  Attributes:  -->
+
+<data id="location"
+      scope:cpp_type="const std::string"
+      expr="none"
+      scope:init_source="parse_as_option"
+      />
+
+</datamodel>
+
+Each attribute contains the initialization directives for a variable needed by the state machine.
+The field "id" contains the name of the variable of the type specified in "scope:cpp_type".
+
+A variable might be initialized inside the header file of the skill (will be added automatically), if the source is filled with scope:init_source="initialize_inside_header".
+The initialization tackles the value of "expr" (it should be consistent with the cpp_type).
+
+Altenatively, scope:init_source="parse_as_option" imply that the "expr" field is not considered, while the attribute is parsed by the application start-up file,
+that contains the command line commands. In our implementation, this role is accomplished by the docker-compose.yml.
+
+As an example, the location variable is parsed (for each GoTo executable) by:
+
+gammaray /usr/local/src/bt-implementation/build/bin/GoToSkill --skill-name GoToDestination --location kitchen"
+
+In this case "kitchen" is the destination of the skill.

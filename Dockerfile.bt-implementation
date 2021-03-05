@@ -1,0 +1,36 @@
+FROM scoperobmosys/scope:ICRA2021-experiments
+
+ARG cmake_parallel=8
+ENV CMAKE_BUILD_PARALLEL_LEVEL=${cmake_parallel}
+
+ARG username
+ARG uid
+ARG gid
+RUN groupadd --system --gid $gid $username; \
+    useradd --system --home-dir /home/$username --create-home --shell /bin/bash --uid $uid --gid $gid --groups root,sudo $username -p "$(openssl passwd -1 $username)"; \
+    mkdir -p /run/user/$uid; \
+    chown $username: /run/user/$uid; \
+    chmod 700 /run/user/$uid; \
+    chown -R $username: /usr/local/src/; \
+    mkdir -p /home/$username/logs; \
+    chown -R $username: /home/$username/logs
+
+RUN apt-get update -qq && \
+    updatedb
+
+# Build bt-implementation project
+COPY . /usr/local/src/bt-implementation/
+RUN \
+    cmake \
+        -H/usr/local/src/bt-implementation \
+        -B/usr/local/src/bt-implementation/build \
+        -DCMAKE_INSTALL_PREFIX=/usr/local \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DCMAKE_VERBOSE_MAKEFILE=ON && \
+    cmake --build /usr/local/src/bt-implementation/build; \
+    chown -R $username: /usr/local/src/bt-implementation; \
+    echo '[search bt_implementation]' > /usr/share/yarp/config/path.d/bt_implementation.ini; \
+    echo 'path "/usr/local/src/bt-implementation/build/share/yarp"' >> /usr/share/yarp/config/path.d/bt_implementation.ini
+
+USER $username
+WORKDIR /home/$username

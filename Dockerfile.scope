@@ -1,0 +1,228 @@
+FROM ubuntu:focal
+
+LABEL maintainer="daniele.domenichelli@iit.it"
+
+# * Update base system packages
+# * Set timezone to Europe/Rome
+# * Enable robotology/test PPA (FIXME should be robotology/ppa)
+# * Install required software
+#   * libglx-mesa0: enable opengl software rendering
+#   * software-properties-common: used to enable PPAs
+#   * build-essential, git, cmake: download and build software
+#   * bd for BehaviorTree.CPP and Groot
+#   * bd for icub and navigation
+#   * bd for bt-implementation
+#   * gammaray + plugins: qt debugging and scxml visualization
+#   * yarp runtime dependencies
+#   * Some other utilities
+RUN apt-get update -qq && \
+    DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade --autoremove --purge -qq -y && \
+    ln -fs /usr/share/zoneinfo/Europe/Rome /etc/localtime && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        tzdata \
+        && \
+    dpkg-reconfigure --frontend noninteractive tzdata && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        libglx-mesa0 \
+        && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        software-properties-common \
+        && \
+    add-apt-repository -s -y ppa:robotology/test && \
+    sed -i 's|focal main|focal main main/debug|g' /etc/apt/sources.list.d/robotology-ubuntu-test-focal.list && \
+    apt-get update -qq && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        build-essential \
+        git \
+        cmake \
+        && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        libczmq-dev \
+        libgtest-dev \
+        qtbase5-dev \
+        libqt5svg5-dev \
+        libboost-coroutine-dev \
+        && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        libgsl-dev \
+        freeglut3-dev \
+        libode-dev \
+        libsdl1.2-dev \
+        libace-dev \
+        coinor-libipopt-dev \
+        libopencv-dev \
+        qtbase5-dev \
+        && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        ycm-cmake-modules \
+        yarp-dev \
+        libyarp-os3-private-dev \
+        libqt5scxml5-dev \
+        libqt5scxml5-bin \
+        libqt5scxml5-private-dev \
+        qtbase5-private-dev \
+        qtdeclarative5-private-dev \
+        qml-module-qtscxml \
+        && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        gammaray \
+        gammaray-plugin-quickinspector \
+        gammaray-plugin-statemachineviewer \
+        && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        yarpserver \
+        yarp-carrier-unixstream \
+        yarp-carrier-portmonitor \
+        yarp-device-transformserver \
+        yarp-device-fake \
+        yarp-device-map2dserver \
+        yarp-device-map2dclient \
+        yarp-device-localization2dserver \
+        yarp-device-rangefinder2dwrapper \
+        yarp-device-rangefinder2dclient \
+        yarp-device-navigation2dserver \
+        yarp-device-navigation2dclient \
+        yarp-device-remotecontrolboard \
+        yarp-device-localization2dclient \
+        yarp-device-batteryclient \
+        yarp-tools \
+        yarpbatterygui \
+        yarpview \
+        yarplogger \
+        && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        libyarp-dev3-dbgsym \
+        libyarp-gsl3-dbgsym \
+        libyarp-math3-dbgsym \
+        libyarp-os3-dbgsym \
+        libyarp-robotinterface3-dbgsym \
+        libyarp-robottestingframework3-dbgsym \
+        libyarp-sig3-dbgsym \
+        yarp-carrier-portmonitor-dbgsym \
+        yarp-carrier-unixstream-dbgsym \
+        yarp-device-analogserver-dbgsym \
+        yarp-device-audioplayerwrapper-dbgsym \
+        yarp-device-audiorecorderwrapper-dbgsym \
+        yarp-device-batteryclient-dbgsym \
+        yarp-device-batterywrapper-dbgsym \
+        yarp-device-controlboardwrapper2-dbgsym \
+        yarp-device-fake-dbgsym \
+        yarp-device-grabberdual-dbgsym \
+        yarp-device-inertial-dbgsym \
+        yarp-device-localization2dclient-dbgsym \
+        yarp-device-localization2dserver-dbgsym \
+        yarp-device-map2dclient-dbgsym \
+        yarp-device-map2dserver-dbgsym \
+        yarp-device-navigation2dclient-dbgsym \
+        yarp-device-navigation2dserver-dbgsym \
+        yarp-device-rangefinder2dclient-dbgsym \
+        yarp-device-rangefinder2dwrapper-dbgsym \
+        yarp-device-remotecontrolboard-dbgsym \
+        yarp-device-rgbdsensorwrapper-dbgsym \
+        yarp-device-transformserver-dbgsym \
+        yarp-idl-tools-dbgsym \
+        yarp-tools-dbgsym \
+        yarpbatterygui-dbgsym \
+        yarplogger-dbgsym \
+        yarprun-dbgsym \
+        yarpserver-dbgsym \
+        yarpview-dbgsym \
+        && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        bash-completion \
+        ccache \
+        iproute2 \
+        net-tools \
+        sudo \
+        locate \
+        wget \
+        openssl \
+        mesa-utils \
+        x11-apps \
+        vim \
+        nano \
+        debian-goodies \
+        && \
+    update-alternatives --set editor /usr/bin/vim.basic && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Common CMake options for all the projects
+ENV CMAKE_COMMON_OPTIONS=" \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_BUILD_TYPE=None \
+    -DCMAKE_INSTALL_SYSCONFDIR=/etc \
+    -DCMAKE_INSTALL_LOCALSTATEDIR=/var \
+    -DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON \
+    -DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON \
+    -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=FALSE \
+    -DCMAKE_VERBOSE_MAKEFILE=ON \
+    -DBUILD_SHARED_LIBS=ON"
+
+ARG cmake_parallel=8
+ENV CMAKE_BUILD_PARALLEL_LEVEL=${cmake_parallel}
+
+# Build and install BehaviorTree.CPP
+RUN git clone --branch master https://github.com/BehaviorTree/BehaviorTree.CPP.git /usr/local/src/BehaviorTree.CPP && \
+    git -C /usr/local/src/BehaviorTree.CPP checkout 5e8e2da2d93139fdf5f5d188e6dedf4e8180cf15 && \
+    ls -la /usr/local/src/BehaviorTree.CPP/src/decorators && \
+    cmake \
+        -H/usr/local/src/BehaviorTree.CPP \
+        -B/usr/local/src/BehaviorTree.CPP/build \
+        ${CMAKE_COMMON_OPTIONS} && \
+    cmake --build /usr/local/src/BehaviorTree.CPP/build && \
+    cmake --build /usr/local/src/BehaviorTree.CPP/build --target install && \
+    ldconfig
+
+# Build and install Groot
+COPY *.patch /tmp/
+RUN git clone --branch master https://github.com/BehaviorTree/Groot.git /usr/local/src/Groot && \
+    git -C /usr/local/src/Groot config --local user.email "daniele.domenichelli@iit" && \
+    git -C /usr/local/src/Groot config --local user.name "Daniele E. Domenichelli" && \
+    git -C /usr/local/src/Groot am /tmp/0001-Always-build-behavior_tree_editor-as-STATIC.patch && \
+    git -C /usr/local/src/Groot config --local --remove-section user && \
+    cmake \
+        -H/usr/local/src/Groot \
+        -B/usr/local/src/Groot/build \
+        ${CMAKE_COMMON_OPTIONS} && \
+    cmake --build /usr/local/src/Groot/build && \
+    cmake --build /usr/local/src/Groot/build --target install && \
+    ldconfig
+
+# Build and install icub-main
+RUN git clone --branch devel https://github.com/robotology/icub-main.git /usr/local/src/icub-main && \
+    cmake \
+        -H/usr/local/src/icub-main \
+        -B/usr/local/src/icub-main/build \
+        ${CMAKE_COMMON_OPTIONS} && \
+    cmake --build /usr/local/src/icub-main/build && \
+    cmake --build /usr/local/src/icub-main/build --target install && \
+    ldconfig
+
+# Build and install YARP-BT-modules
+# RUN git clone --branch devel https://github.com/CARVE-ROBMOSYS/YARP-BT-modules.git /usr/local/src/YARP-BT-modules && \
+#     cmake \
+#         -H/usr/local/src/YARP-BT-modules \
+#         -B/usr/local/src/YARP-BT-modules/build \
+#         ${CMAKE_COMMON_OPTIONS} && \
+#     cmake --build /usr/local/src/YARP-BT-modules/build && \
+#     cmake --build /usr/local/src/YARP-BT-modules/build --target install && \
+#     ldconfig
+
+# Build and install navigation
+COPY maps/* /tmp/maps/
+RUN git clone --branch master https://github.com/robotology/navigation.git /usr/local/src/navigation && \
+    git -C /usr/local/src/navigation checkout a177ee920af0c9d3ccf18042addcf16b5a5a4435 && \
+    echo >> /usr/local/src/navigation/app/robotPathPlannerExamples/conf/robotGoto_robot_2wheels.ini && \
+    echo >> /usr/local/src/navigation/app/robotPathPlannerExamples/conf/robotGoto_robot_2wheels.ini && \
+    echo [GENERAL] >> /usr/local/src/navigation/app/robotPathPlannerExamples/conf/robotGoto_robot_2wheels.ini && \
+    sed -i '/odomLocalizer::getEstimatedOdometry is not yet implemented/d' /usr/local/src/navigation/src/localizationDevices/odomLocalizer/odomLocalizer.cpp && \
+    sed -i 's/initial_x 0.0/initial_x -6.0/g' /usr/local/src/navigation/app/robotPathPlannerExamples/conf/odomLocalizer.ini && \
+    mv /tmp/maps/* /usr/local/src/navigation/app/mapsExample/ && \
+    cmake \
+        -H/usr/local/src/navigation \
+        -B/usr/local/src/navigation/build \
+        ${CMAKE_COMMON_OPTIONS} && \
+    cmake --build /usr/local/src/navigation/build && \
+    cmake --build /usr/local/src/navigation/build --target install && \
+    ldconfig
