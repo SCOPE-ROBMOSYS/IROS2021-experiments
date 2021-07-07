@@ -47,7 +47,7 @@ Follow the instructions at https://docs.docker.com/install/
    Open a terminal window and run:
 
    ```bash
-   git clone https://github.com/SCOPE-ROBMOSYS/ICRA2021-experiments
+   git clone https://github.com/SCOPE-ROBMOSYS/IROS2021-experiments
    cd ICRA2021-experiments
    sed -i "s/1000/$(id -u)/g" docker-compose.yml # This ensures that the image is built with your current user id
    docker-compose pull scope
