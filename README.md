@@ -4,7 +4,9 @@ In this repository, you will find the code related to the experiments of the pap
 "Formalizing the Execution Context of Behavior Trees
 for Runtime Verification of Deliberative Policies" <br>
 Accepted at IROS2021 by Michele Colledanchise, Giuseppe Cicala, Daniele Domenichelli,  Lorenzo Natale, and Armando Tacchella.
- The preprint of the paper is available on [arXiv](https://arxiv.org/abs/2106.12474)
+<br>
+<br>
+The **preprint** of the paper is available on [arXiv](https://arxiv.org/abs/2106.12474)
 
 
 
